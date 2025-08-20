@@ -2,7 +2,8 @@ package org.example.lufthansaurlsystem.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.lufthansaurlsystem.service.UrlService;
+import org.example.lufthansaurlsystem.service.UrlManagementService;
+import org.example.lufthansaurlsystem.service.UrlShorteningService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,14 +14,11 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/urls")
 public class UrlController {
 
-    private final UrlService urlService;
+    private final UrlManagementService urlManagementService;
+    private final UrlShorteningService urlShorteningService;
     @Value("${url.base}")
     private String baseUrl;
 
-    /**
-     * Shorten a URL.
-     * JWT token must be in Authorization header: "Bearer <token>"
-     */
     @PostMapping("/shorten")
     public ResponseEntity<String> shortenUrl(@RequestParam String url,
                                              @RequestParam(required = false) Long expireMinutes,
@@ -28,7 +26,7 @@ public class UrlController {
         String jwtToken = authHeader.replace("Bearer ", "");
         log.info("Extracted JWT token: {}", jwtToken.substring(0, Math.min(jwtToken.length(), 20)) + "...");
 
-        String shortCode = urlService.shortenUrl(url, jwtToken, expireMinutes);
+        String shortCode = urlShorteningService.shortenUrl(url, jwtToken, expireMinutes);
         String shortUrl = baseUrl + shortCode;
 
         log.info("Generated short URL: {}", shortUrl);
@@ -36,19 +34,19 @@ public class UrlController {
     }
 
     @GetMapping("/{shortCode}")
-    public ResponseEntity<String> getLongUrl(@PathVariable String shortCode) {
-        String longUrl = urlService.getLongUrl(shortCode);
-        return ResponseEntity.ok(longUrl);
+    public ResponseEntity<String> getUrl(@PathVariable String shortCode,
+                                         @RequestHeader("Authorization") String authHeader) {
+        String jwtToken = authHeader.replace("Bearer ", "");
+        String url = urlManagementService.getUrl(shortCode, jwtToken);
+        return ResponseEntity.ok(url);
     }
 
-    /**
-     * Overwrite expiration for a given short URL.
-     * JWT token required for authentication.
-     */
     @PutMapping("/{shortCode}/expiration")
     public ResponseEntity<String> updateExpiration(@PathVariable String shortCode,
-                                                   @RequestParam long minutes) {
-        urlService.updateExpiration(shortCode, minutes);
+                                                   @RequestParam long minutes,
+                                                   @RequestHeader("Authorization") String authHeader) {
+        String jwtToken = authHeader.replace("Bearer ", "");
+        urlManagementService.updateExpiration(shortCode, minutes, jwtToken);
         return ResponseEntity.ok("Expiration updated successfully");
     }
 }

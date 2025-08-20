@@ -1,6 +1,7 @@
 package org.example.lufthansaurlsystem.configuration;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.lufthansaurlsystem.service.UserDetailsServiceImpl;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -14,7 +15,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -31,20 +32,36 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = null;
         String username = null;
 
+        log.info("Processing request to: {}", request.getRequestURI());
+        log.info("Authorization header: {}", authHeader);
+
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             token = authHeader.substring(7);
+            log.info("Extracted token: {}", token.substring(0, Math.min(token.length(), 20)) + "...");
+
+
             if (jwtUtils.validateToken(token)) {
                 username = jwtUtils.getUsernameFromToken(token);
+                log.info("Token is valid for user: {}", username);
+            } else {
+                log.warn("Token validation failed");
             }
+        } else {
+            log.warn("No valid Authorization header found");
         }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            try {
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
             UsernamePasswordAuthenticationToken authToken =
                     new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
             authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(authToken);
-        }
+                log.info("User {} authenticated successfully", username);
+            } catch (Exception e) {
+                log.error("Error loading user details for username: {}", username, e);
+            }
+            }
 
         filterChain.doFilter(request, response);
     }

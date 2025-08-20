@@ -14,13 +14,15 @@ import java.util.Optional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class UrlService {
-
+public class UrlShorteningService {
     private final UrlRepository urlRepository;
     private final JwtUtils jwtUtils;
 
     @Value("${url.expiration.minutes}")
     private long defaultExpirationMinutes;
+
+    @Value("${url.base}")
+    private String baseUrl;
 
     /**
      * Shorten a long URL.
@@ -45,10 +47,14 @@ public class UrlService {
                 log.info("URL not expired, resetting expiration for URL: {}", url);
 
                 entity.setExpirationAt(LocalDateTime.now().plusMinutes(effectiveExpiration));
+                String properShortCode = Base62Encoder.encode(entity.getId());
+                String fullShortUrl = baseUrl + properShortCode;
+                entity.setShortUrl(fullShortUrl);
                 urlRepository.save(entity);
-                log.info("Returning existing short URL: {} for URL: {}", entity.getShortUrl(), url);
+                log.info("Returning existing short URL: {}", properShortCode);
 
-                return entity.getShortUrl();
+                return properShortCode;
+
             }
             log.info("URL is expired, will create new one for: {}", url);
             urlRepository.delete(entity);
@@ -70,47 +76,10 @@ public class UrlService {
         entity = urlRepository.save(entity);
 
         String properShortCode = Base62Encoder.encode(entity.getId());
-        entity.setShortUrl(properShortCode);
+        String fullShortUrl = baseUrl + properShortCode;
+        entity.setShortUrl(fullShortUrl);
         urlRepository.save(entity);
-        log.info("Created new short URL: {} for URL: {}", properShortCode, url);
+        log.info("Created new short URL: {}", fullShortUrl);
         return properShortCode;
-    }
-
-    /**
-     * Resolve a short code to the original long URL.
-     * Increment clicks and check expiration.
-     */
-    public String getLongUrl(String shortCode) {
-        // Decode Base62 back to ID
-        long id = Base62Encoder.decode(shortCode);
-
-        UrlEntity entity = urlRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("URL not found"));
-
-        // Expired check
-        if (entity.getExpirationAt().isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("URL has expired");
-        }
-
-        // Increment clicks
-        entity.setClicks(entity.getClicks() + 1);
-        urlRepository.save(entity);
-
-        return entity.getUrl();
-
-    }
-
-    /**
-     * Allow authenticated user to overwrite expiration
-     * Update expiration of an existing short URL
-     */
-    public void updateExpiration(String shortCode, long minutes) {
-        long id = Base62Encoder.decode(shortCode);
-
-        UrlEntity entity = urlRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("URL not found"));
-
-        entity.setExpirationAt(LocalDateTime.now().plusMinutes(minutes));
-        urlRepository.save(entity);
     }
 }
