@@ -1,6 +1,7 @@
 package org.example.lufthansaurlsystem.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.lufthansaurlsystem.Entity.UrlEntity;
 import org.example.lufthansaurlsystem.configuration.JwtUtils;
 import org.example.lufthansaurlsystem.repository.UrlRepository;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UrlService {
@@ -19,44 +21,59 @@ public class UrlService {
 
     @Value("${url.expiration.minutes}")
     private long defaultExpirationMinutes;
+
     /**
      * Shorten a long URL.
      * If the URL exists and is not expired, reset expiration.
+     * If it has expired, delete it and create a new shortened URL.
      */
     public String shortenUrl(String url, String jwtToken, Long expireMinutes) {
         String username = jwtUtils.getUsernameFromToken(jwtToken);
 
-        // Decide expiration time: user value OR default
         long effectiveExpiration = (expireMinutes != null) ? expireMinutes : defaultExpirationMinutes;
+        log.info("Processing URL: {}", url);
+        log.info("UrlRepository instance: {}", urlRepository);
 
         Optional<UrlEntity> existing = urlRepository.findByUrl(url);
+        log.info("Existing URL found: {}", existing.isPresent());
 
         if (existing.isPresent()) {
             UrlEntity entity = existing.get();
-
-
-            // If not expired, return same short code but reset expiration
+            log.info("URL found - ID: {}, Expires: {}", entity.getId(), entity.getExpirationAt());
             if (entity.getExpirationAt().isAfter(LocalDateTime.now())) {
-                // Reset expiration if not expired
+
+                log.info("URL not expired, resetting expiration for URL: {}", url);
+
                 entity.setExpirationAt(LocalDateTime.now().plusMinutes(effectiveExpiration));
                 urlRepository.save(entity);
+                log.info("Returning existing short URL: {} for URL: {}", entity.getShortUrl(), url);
+
                 return entity.getShortUrl();
             }
+            log.info("URL is expired, will create new one for: {}", url);
+            urlRepository.delete(entity);
+        } else {
+            log.info("No existing URL found, creating new one for: {}", url);
         }
 
-        // Create new URL entity
+        log.info("Creating new URL entity for: {}", url);
         UrlEntity entity = new UrlEntity();
         entity.setUrl(url);
+        entity.setCreatedAt(LocalDateTime.now());
         entity.setExpirationAt(LocalDateTime.now().plusMinutes(effectiveExpiration));
         entity.setClicks(0);
-        entity.setUserId(username); // associate with authenticated user
-        urlRepository.save(entity);
+        entity.setUserId(username);
 
-        String shortCode = Base62Encoder.encode(entity.getId());
+        String shortCode = Base62Encoder.encode(System.currentTimeMillis());
         entity.setShortUrl(shortCode);
-        urlRepository.save(entity);
 
-        return shortCode;
+        entity = urlRepository.save(entity);
+
+        String properShortCode = Base62Encoder.encode(entity.getId());
+        entity.setShortUrl(properShortCode);
+        urlRepository.save(entity);
+        log.info("Created new short URL: {} for URL: {}", properShortCode, url);
+        return properShortCode;
     }
 
     /**

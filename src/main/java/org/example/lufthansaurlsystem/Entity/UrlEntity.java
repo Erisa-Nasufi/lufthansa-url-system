@@ -23,8 +23,15 @@ public class UrlEntity {
     @Column(nullable = false, unique = true)
     private String shortUrl;
 
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
+
+    @Column(name = "expiration_at")
     private LocalDateTime expirationAt;
+
+    @Column(name = "clicks")
     private int clicks;
+
+    @Column(name = "user_id")
     private String userId;
 }
