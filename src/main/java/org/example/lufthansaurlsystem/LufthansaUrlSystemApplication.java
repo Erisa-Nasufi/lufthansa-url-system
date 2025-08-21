@@ -16,13 +16,13 @@ public class LufthansaUrlSystemApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(LufthansaUrlSystemApplication.class, args);
-//        PasswordEncoder encoder = new BCryptPasswordEncoder();
-//        // Replace this with the password you want to hash
-//        String rawPassword = "password1";
-//        String hashedPassword = encoder.encode(rawPassword);
-//
-//        System.out.println("Raw password: " + rawPassword);
-//        System.out.println("BCrypt hashed password: " + hashedPassword);
+        PasswordEncoder encoder = new BCryptPasswordEncoder();
+        // Replace this with the password you want to hash
+        String rawPassword = "password1";
+        String hashedPassword = encoder.encode(rawPassword);
+
+        System.out.println("Raw password: " + rawPassword);
+        System.out.println("BCrypt hashed password: " + hashedPassword);
     }
 
 }

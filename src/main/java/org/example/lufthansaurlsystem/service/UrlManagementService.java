@@ -37,7 +37,7 @@ public class UrlManagementService {
         }
 
         log.info("URL {} resolved successfully. Total clicks: {}", entity.getUrl(), entity.getClicks());
-        urlRepository.updateClicksByUrl(entity.getClicks() + 1, entity.getUrl());
+        urlRepository.updateClicks(entity.getClicks() + 1, entity.getShortUrl());
         return entity.getUrl();
     }
 

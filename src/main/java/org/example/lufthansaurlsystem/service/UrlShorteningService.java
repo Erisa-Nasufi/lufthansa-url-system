@@ -69,6 +69,7 @@ public class UrlShorteningService {
         entity.setExpirationAt(LocalDateTime.now().plusMinutes(effectiveExpiration));
         entity.setClicks(0);
         entity.setUserId(username);
+
         String shortCode = Base62Encoder.encode(System.currentTimeMillis());
         entity.setShortUrl(shortCode);
 
