@@ -3,8 +3,8 @@ package org.example.lufthansaurlsystem.controller;
 import lombok.RequiredArgsConstructor;
 import org.example.lufthansaurlsystem.Entity.User;
 import org.example.lufthansaurlsystem.security.JwtUtils;
-import org.example.lufthansaurlsystem.dto.auth.AuthRequest;
-import org.example.lufthansaurlsystem.dto.auth.AuthResponse;
+import org.example.lufthansaurlsystem.dto.AuthRequest;
+import org.example.lufthansaurlsystem.dto.AuthResponse;
 import org.example.lufthansaurlsystem.repository.UserRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -43,13 +43,9 @@ public class LoginController {
         }
     }
 
-    /**
-     * Authenticate a user and return a JWT token.
-     */
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody AuthRequest authRequest) {
         try {
-            // Authenticate username and password
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             authRequest.getUsername(),
@@ -57,12 +53,10 @@ public class LoginController {
                     )
             );
 
-            // Generate JWT token
             String token = jwtUtils.generateToken(authRequest.getUsername());
 
             return ResponseEntity.ok(new AuthResponse(token));
         } catch (AuthenticationException e) {
-            // Authentication failed
             return ResponseEntity.status(401).build();
         }
     }

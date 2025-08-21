@@ -29,7 +29,7 @@ class urlCronJobTest {
     @Test
     @DisplayName("Should delete expired URLs during cleanup")
     void shouldDeleteExpiredUrlsDuringCleanup() {
-        // Arrange
+
         UrlEntity expiredUrl1 = new UrlEntity();
         expiredUrl1.setId(1L);
         expiredUrl1.setExpirationAt(LocalDateTime.now().minusMinutes(10));
@@ -46,10 +46,10 @@ class urlCronJobTest {
 
         when(urlRepository.findAll()).thenReturn(allUrls);
 
-        // Act
+
         UrlCronJob.cleanExpiredUrls();
 
-        // Assert
+
         verify(urlRepository).delete(expiredUrl1);
         verify(urlRepository).delete(expiredUrl2);
         verify(urlRepository, never()).delete(validUrl);
@@ -58,22 +58,22 @@ class urlCronJobTest {
     @Test
     @DisplayName("Should handle empty URL list during cleanup")
     void shouldHandleEmptyUrlListDuringCleanup() {
-        // Arrange
+
         when(urlRepository.findAll()).thenReturn(Arrays.asList());
 
-        // Act
+
         assertDoesNotThrow(() -> {
             UrlCronJob.cleanExpiredUrls();
         });
 
-        // Assert
+
         verify(urlRepository, never()).delete(any(UrlEntity.class));
     }
 
     @Test
     @DisplayName("Should handle all valid URLs during cleanup")
     void shouldHandleAllValidUrlsDuringCleanup() {
-        // Arrange
+
         UrlEntity validUrl1 = new UrlEntity();
         validUrl1.setId(1L);
         validUrl1.setExpirationAt(LocalDateTime.now().plusMinutes(10));
@@ -86,10 +86,10 @@ class urlCronJobTest {
 
         when(urlRepository.findAll()).thenReturn(allValidUrls);
 
-        // Act
+
         UrlCronJob.cleanExpiredUrls();
 
-        // Assert
+
         verify(urlRepository, never()).delete(any(UrlEntity.class));
     }
 }

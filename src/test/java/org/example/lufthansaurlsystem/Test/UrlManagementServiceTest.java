@@ -39,47 +39,39 @@ class UrlManagementServiceTest {
 
     @BeforeEach
     void setUp() {
-        ReflectionTestUtils.setField(urlManagementService, "defaultExpirationMinutes", 5L);
         ReflectionTestUtils.setField(urlManagementService, "baseUrl", "https://short.url/");
     }
 
     @Test
     @DisplayName("Should return original URL when short code is valid and not expired")
     void shouldReturnOriginalUrlWhenShortCodeIsValidAndNotExpired() {
-        // Arrange
         UrlEntity entity = new UrlEntity();
         entity.setId(1L);
         entity.setUrl(TEST_ORIGINAL_URL);
         entity.setExpirationAt(LocalDateTime.now().plusMinutes(10));
         entity.setClicks(5);
+        entity.setShortUrl("shortUrl123");
 
-        when(jwtUtils.getUsernameFromToken(TEST_JWT_TOKEN)).thenReturn(TEST_USERNAME);
-        // Përdor any() për të kapur çdo ID që vjen nga decode
         when(urlRepository.findById(any(Long.class))).thenReturn(Optional.of(entity));
-        when(urlRepository.save(any(UrlEntity.class))).thenReturn(entity);
+        doNothing().when(urlRepository).updateClicksByUrl(any(Integer.class), any(String.class));
 
-        // Act
+
         String result = urlManagementService.getUrlByShortCode(TEST_SHORT_CODE);
 
-        // Assert
         assertEquals(TEST_ORIGINAL_URL, result);
-        assertEquals(6, entity.getClicks()); // Should increment clicks
-        verify(urlRepository).save(entity);
+        verify(urlRepository).updateClicksByUrl(6, entity.getShortUrl());
     }
 
     @Test
     @DisplayName("Should throw exception when URL is expired")
     void shouldThrowExceptionWhenUrlIsExpired() {
-        // Arrange
         UrlEntity expiredEntity = new UrlEntity();
         expiredEntity.setId(1L);
         expiredEntity.setUrl(TEST_ORIGINAL_URL);
         expiredEntity.setExpirationAt(LocalDateTime.now().minusMinutes(5));
 
-        when(jwtUtils.getUsernameFromToken(TEST_JWT_TOKEN)).thenReturn(TEST_USERNAME);
         when(urlRepository.findById(any(Long.class))).thenReturn(Optional.of(expiredEntity));
 
-        // Act & Assert
         assertThrows(RuntimeException.class, () -> {
             urlManagementService.getUrlByShortCode(TEST_SHORT_CODE);
         });
@@ -90,7 +82,6 @@ class UrlManagementServiceTest {
     @Test
     @DisplayName("Should update expiration time successfully")
     void shouldUpdateExpirationTimeSuccessfully() {
-        // Arrange
         UrlEntity entity = new UrlEntity();
         entity.setId(1L);
         entity.setUrl(TEST_ORIGINAL_URL);
@@ -102,12 +93,10 @@ class UrlManagementServiceTest {
 
         long newExpirationMinutes = 60L;
 
-        // Act
         assertDoesNotThrow(() -> {
             urlManagementService.updateExpiration(TEST_SHORT_CODE, newExpirationMinutes, TEST_JWT_TOKEN);
         });
 
-        // Assert
         verify(urlRepository).save(entity);
         assertTrue(entity.getExpirationAt().isAfter(LocalDateTime.now().plusMinutes(55)));
     }
@@ -115,28 +104,24 @@ class UrlManagementServiceTest {
     @Test
     @DisplayName("Should handle short code with base URL prefix")
     void shouldHandleShortCodeWithBaseUrlPrefix() {
-        // Arrange
         String shortCodeWithPrefix = "https://short.url/" + TEST_SHORT_CODE;
         UrlEntity entity = new UrlEntity();
         entity.setId(1L);
         entity.setUrl(TEST_ORIGINAL_URL);
         entity.setExpirationAt(LocalDateTime.now().plusMinutes(10));
+        entity.setShortUrl("shortUrl123");
 
-        when(jwtUtils.getUsernameFromToken(TEST_JWT_TOKEN)).thenReturn(TEST_USERNAME);
         when(urlRepository.findById(any(Long.class))).thenReturn(Optional.of(entity));
-        when(urlRepository.save(any(UrlEntity.class))).thenReturn(entity);
+        doNothing().when(urlRepository).updateClicksByUrl(any(Integer.class), any(String.class));
 
-        // Act
         String result = urlManagementService.getUrlByShortCode(shortCodeWithPrefix);
 
-        // Assert
         assertEquals(TEST_ORIGINAL_URL, result);
     }
 
     @Test
     @DisplayName("Should throw exception for null or blank short code")
     void shouldThrowExceptionForNullOrBlankShortCode() {
-        // Act & Assert
         assertThrows(IllegalArgumentException.class, () -> {
             urlManagementService.getUrlByShortCode(null);
         });
@@ -152,12 +137,9 @@ class UrlManagementServiceTest {
 
     @Test
     @DisplayName("Should throw exception when URL not found")
-    void shouldThrowExceptionWhenUrlNotFound() {
-        // Arrange
-        when(jwtUtils.getUsernameFromToken(TEST_JWT_TOKEN)).thenReturn(TEST_USERNAME);
+    void shouldThrowExceptionWhenURLNotFound() {
         when(urlRepository.findById(any(Long.class))).thenReturn(Optional.empty());
 
-        // Act & Assert
         assertThrows(RuntimeException.class, () -> {
             urlManagementService.getUrlByShortCode(TEST_SHORT_CODE);
         });
@@ -166,7 +148,6 @@ class UrlManagementServiceTest {
     @Test
     @DisplayName("Should extract username from JWT token")
     void shouldExtractUsernameFromJwtToken() {
-        // Arrange
         UrlEntity entity = new UrlEntity();
         entity.setId(1L);
         entity.setUrl(TEST_ORIGINAL_URL);
@@ -176,10 +157,8 @@ class UrlManagementServiceTest {
         when(urlRepository.findById(any(Long.class))).thenReturn(Optional.of(entity));
         when(urlRepository.save(any(UrlEntity.class))).thenReturn(entity);
 
-        // Act
-        urlManagementService.getUrlByShortCode(TEST_SHORT_CODE);
+        urlManagementService.updateExpiration(TEST_SHORT_CODE, 60L, TEST_JWT_TOKEN);
 
-        // Assert
         verify(jwtUtils).getUsernameFromToken(TEST_JWT_TOKEN);
     }
 }

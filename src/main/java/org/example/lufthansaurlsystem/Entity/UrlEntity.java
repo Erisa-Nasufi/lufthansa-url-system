@@ -20,7 +20,7 @@ public class UrlEntity {
     @Column(nullable = false, unique = true)
     private String url;
 
-    @Column(nullable = false, unique = true)
+    @Column(name = "short_url", nullable = false, unique = true, length = 16)
     private String shortUrl;
 
     @Column(name = "created_at")

@@ -16,6 +16,7 @@ public class UrlController {
 
     private final UrlManagementService urlManagementService;
     private final UrlShorteningService urlShorteningService;
+
     @Value("${url.base}")
     private String baseUrl;
 

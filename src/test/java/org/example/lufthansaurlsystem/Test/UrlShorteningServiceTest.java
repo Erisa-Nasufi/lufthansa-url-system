@@ -45,7 +45,7 @@ class UrlShorteningServiceTest {
     @Test
     @DisplayName("Should create new short URL when URL does not exist")
     void shouldCreateNewShortUrlWhenUrlDoesNotExist() {
-        // Arrange
+
         when(jwtUtils.getUsernameFromToken(TEST_JWT_TOKEN)).thenReturn(TEST_USERNAME);
         when(urlRepository.findByUrl(TEST_URL)).thenReturn(Optional.empty());
         when(urlRepository.save(any(UrlEntity.class))).thenAnswer(invocation -> {
@@ -54,10 +54,10 @@ class UrlShorteningServiceTest {
             return entity;
         });
 
-        // Act
+
         String result = urlShorteningService.shortenUrl(TEST_URL, TEST_JWT_TOKEN, null);
 
-        // Assert
+
         assertNotNull(result);
         assertTrue(result.length() > 0);
         verify(urlRepository, times(2)).save(any(UrlEntity.class));
@@ -67,7 +67,7 @@ class UrlShorteningServiceTest {
     @Test
     @DisplayName("Should return existing short URL when URL exists and is not expired")
     void shouldReturnExistingShortUrlWhenUrlExistsAndNotExpired() {
-        // Arrange
+
         UrlEntity existingEntity = new UrlEntity();
         existingEntity.setId(1L);
         existingEntity.setUrl(TEST_URL);
@@ -78,10 +78,9 @@ class UrlShorteningServiceTest {
         when(urlRepository.findByUrl(TEST_URL)).thenReturn(Optional.of(existingEntity));
         when(urlRepository.save(any(UrlEntity.class))).thenReturn(existingEntity);
 
-        // Act
+
         String result = urlShorteningService.shortenUrl(TEST_URL, TEST_JWT_TOKEN, null);
 
-        // Assert
         assertNotNull(result);
         verify(urlRepository).save(existingEntity);
         verify(urlRepository, never()).delete(any(UrlEntity.class));
@@ -90,7 +89,7 @@ class UrlShorteningServiceTest {
     @Test
     @DisplayName("Should create new short URL when existing URL is expired")
     void shouldCreateNewShortUrlWhenExistingUrlIsExpired() {
-        // Arrange
+
         UrlEntity expiredEntity = new UrlEntity();
         expiredEntity.setId(1L);
         expiredEntity.setUrl(TEST_URL);
@@ -105,10 +104,8 @@ class UrlShorteningServiceTest {
             return entity;
         });
 
-        // Act
         String result = urlShorteningService.shortenUrl(TEST_URL, TEST_JWT_TOKEN, null);
 
-        // Assert
         assertNotNull(result);
         verify(urlRepository).delete(expiredEntity);
         verify(urlRepository, times(2)).save(any(UrlEntity.class));
@@ -127,10 +124,8 @@ class UrlShorteningServiceTest {
             return entity;
         });
 
-        // Act
         String result = urlShorteningService.shortenUrl(TEST_URL, TEST_JWT_TOKEN, customExpiration);
 
-        // Assert
         assertNotNull(result);
         verify(urlRepository, times(2)).save(any(UrlEntity.class));
     }
@@ -147,10 +142,8 @@ class UrlShorteningServiceTest {
             return entity;
         });
 
-        // Act
         urlShorteningService.shortenUrl(TEST_URL, TEST_JWT_TOKEN, null);
 
-        // Assert
         verify(jwtUtils).getUsernameFromToken(TEST_JWT_TOKEN);
     }
 }

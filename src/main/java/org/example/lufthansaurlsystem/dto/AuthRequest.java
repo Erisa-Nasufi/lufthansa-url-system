@@ -1,4 +1,4 @@
-package org.example.lufthansaurlsystem.dto.auth;
+package org.example.lufthansaurlsystem.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

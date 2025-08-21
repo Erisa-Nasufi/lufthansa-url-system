@@ -3,6 +3,7 @@ package org.example.lufthansaurlsystem.cron;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.lufthansaurlsystem.repository.UrlRepository;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -14,7 +15,7 @@ public class UrlCronJob {
 
     private final UrlRepository urlRepository;
 
-//    @Scheduled(cron = "0 * * * * *")
+    @Scheduled(cron = "0 * * * * *")
     public void cleanExpiredUrls() {
         log.info("Scheduled task started at: {}", LocalDateTime.now());
 

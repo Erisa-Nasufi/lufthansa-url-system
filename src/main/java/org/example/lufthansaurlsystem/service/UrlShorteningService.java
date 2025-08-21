@@ -25,11 +25,6 @@ public class UrlShorteningService {
     @Value("${url.base}")
     private String baseUrl;
 
-    /**
-     * Shorten a long URL.
-     * If the URL exists and is not expired, reset expiration.
-     * If it has expired, delete it and create a new shortened URL.
-     */
     public String shortenUrl(String url, String jwtToken, Long expireMinutes) {
         String username = jwtUtils.getUsernameFromToken(jwtToken);
 

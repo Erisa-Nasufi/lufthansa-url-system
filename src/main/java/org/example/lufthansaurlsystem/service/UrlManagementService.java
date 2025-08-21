@@ -22,11 +22,6 @@ public class UrlManagementService {
     @Value("${url.base}")
     private String baseUrl;
 
-    /**
-     * Resolve a short code to the original URL.
-     * Check expiration.
-     * Increment clicks.
-     */
     public String getUrlByShortCode(String shortCode) {
         UrlEntity entity = getEntityByShortCode(shortCode);
 
@@ -37,14 +32,10 @@ public class UrlManagementService {
         }
 
         log.info("URL {} resolved successfully. Total clicks: {}", entity.getUrl(), entity.getClicks());
-        urlRepository.updateClicks(entity.getClicks() + 1, entity.getShortUrl());
+        urlRepository.updateClicksByUrl(entity.getClicks() + 1, entity.getShortUrl());
         return entity.getUrl();
     }
 
-    /**
-     * Allow authenticated user to overwrite expiration
-     * Update expiration of an existing short URL
-     */
     public void updateExpiration(String shortCode, long minutes, String jwtToken) {
         String username = jwtUtils.getUsernameFromToken(jwtToken);
 
