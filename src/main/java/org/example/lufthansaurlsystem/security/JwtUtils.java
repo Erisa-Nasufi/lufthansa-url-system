@@ -1,4 +1,4 @@
-package org.example.lufthansaurlsystem.configuration;
+package org.example.lufthansaurlsystem.security;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;

@@ -36,8 +36,7 @@ public class UrlController {
     @GetMapping("/{shortCode}")
     public ResponseEntity<String> getUrl(@PathVariable String shortCode,
                                          @RequestHeader("Authorization") String authHeader) {
-        String jwtToken = authHeader.replace("Bearer ", "");
-        String url = urlManagementService.getUrl(shortCode, jwtToken);
+        String url = urlManagementService.getUrlByShortCode(shortCode);
         return ResponseEntity.ok(url);
     }
 

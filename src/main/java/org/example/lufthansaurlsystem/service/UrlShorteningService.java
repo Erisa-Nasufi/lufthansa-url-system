@@ -3,7 +3,8 @@ package org.example.lufthansaurlsystem.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.lufthansaurlsystem.Entity.UrlEntity;
-import org.example.lufthansaurlsystem.configuration.JwtUtils;
+import org.example.lufthansaurlsystem.security.Base62Encoder;
+import org.example.lufthansaurlsystem.security.JwtUtils;
 import org.example.lufthansaurlsystem.repository.UrlRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -54,7 +55,6 @@ public class UrlShorteningService {
                 log.info("Returning existing short URL: {}", properShortCode);
 
                 return properShortCode;
-
             }
             log.info("URL is expired, will create new one for: {}", url);
             urlRepository.delete(entity);
@@ -69,7 +69,6 @@ public class UrlShorteningService {
         entity.setExpirationAt(LocalDateTime.now().plusMinutes(effectiveExpiration));
         entity.setClicks(0);
         entity.setUserId(username);
-
         String shortCode = Base62Encoder.encode(System.currentTimeMillis());
         entity.setShortUrl(shortCode);
 

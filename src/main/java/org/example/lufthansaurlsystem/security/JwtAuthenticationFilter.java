@@ -1,8 +1,8 @@
-package org.example.lufthansaurlsystem.configuration;
+package org.example.lufthansaurlsystem.security;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.lufthansaurlsystem.service.UserDetailsServiceImpl;
+import org.example.lufthansaurlsystem.security.implementation.UserDetailsServiceImpl;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -29,6 +29,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     FilterChain filterChain) throws ServletException, IOException {
 
         String authHeader = request.getHeader("Authorization");
+        log.info("Authorization header: '{}'", authHeader);
+
         String token = null;
         String username = null;
 
@@ -47,7 +49,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 log.warn("Token validation failed");
             }
         } else {
-            log.warn("No valid Authorization header found");
+            log.warn("No valid Authorization header found. Got: {}", authHeader);
         }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {

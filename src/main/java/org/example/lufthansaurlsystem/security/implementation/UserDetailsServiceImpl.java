@@ -1,4 +1,4 @@
-package org.example.lufthansaurlsystem.service;
+package org.example.lufthansaurlsystem.security.implementation;
 
 
 import org.example.lufthansaurlsystem.Entity.User;

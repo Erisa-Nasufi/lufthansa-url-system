@@ -1,4 +1,4 @@
-package org.example.lufthansaurlsystem.service;
+package org.example.lufthansaurlsystem.security;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;

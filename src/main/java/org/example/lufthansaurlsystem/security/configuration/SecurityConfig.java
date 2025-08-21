@@ -1,7 +1,8 @@
-package org.example.lufthansaurlsystem.configuration;
+package org.example.lufthansaurlsystem.security.configuration;
 
 import lombok.RequiredArgsConstructor;
-import org.example.lufthansaurlsystem.service.UserDetailsServiceImpl;
+import org.example.lufthansaurlsystem.security.JwtAuthenticationFilter;
+import org.example.lufthansaurlsystem.security.implementation.UserDetailsServiceImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -34,15 +35,16 @@ public class SecurityConfig {
         return authBuilder.build();
     }
 
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                        .anyRequest().authenticated()
+                        .requestMatchers("/api/auth/**", "/swagger-ui/**", "/v3/api-docs/**")
+                        .permitAll()
+                        .anyRequest()
+                        .authenticated()
                 );
 
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
